@@ -3,24 +3,22 @@ package db
 import (
 	"context"
 	"log"
-	"os"
 	"time"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var MongoClient *mongo.Client
-var MongoDatabase *mongo.Database
+type MongoDB struct {
+	Client *mongo.Client
+	Database *mongo.Database
+}
 
-func InitDB() {
+func InitDB(uri, dbName string) (*MongoDB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	mongoURI := os.Getenv("MONGO_URI")
-	dbName := os.Getenv("DB_NAME")
-
-	clientOptions := options.Client().ApplyURI(mongoURI)
+	clientOptions := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
@@ -32,6 +30,13 @@ func InitDB() {
 
 	log.Println("Connected to MongoDB")
 
-	MongoClient = client
-	MongoDatabase = client.Database(dbName)
+	log.Println("Connected to MongoDB")
+    return &MongoDB{
+        Client:   client,
+        Database: client.Database(dbName),
+    }, nil
+}
+
+func (m *MongoDB) Close(ctx context.Context) error {
+	return m.Client.Disconnect(ctx)
 }
