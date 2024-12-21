@@ -14,12 +14,14 @@ import (
 func SetupRoutes(router *gin.Engine, db *mongo.Database) {
 	// Initialize repositories
 	userRepo := repositories.NewUserRepository(db)
-
+	blogRepo := repositories.NewBlogRepository(db)
 	// Initialize services
 	authService := services.NewAuthService(userRepo)
+	blogService := services.NewBlogService(blogRepo)
 
 	// Initialize controllers
 	authController := controllers.NewAuthController(authService)
+	blogController := controllers.NewBlogController(blogService)
 
 	router.GET("/health", controllers.HealthCheck())
 
@@ -28,7 +30,8 @@ func SetupRoutes(router *gin.Engine, db *mongo.Database) {
 
 	// Setup route groups
 	SetupAuthRoutes(v1, authController)
-
+	SetupBlogRoutes(v1, blogController)
+	
 	// Add this after all routes are set up
 	routes := router.Routes()
 	for _, route := range routes {

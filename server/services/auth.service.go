@@ -4,10 +4,12 @@ import (
 	"context"
 	"crud_app/models"
 	"crud_app/repositories"
+	"time"
 
 	"crud_app/utils"
 	"errors"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,6 +21,11 @@ func NewAuthService(userRepo repositories.IUserRepository) *AuthService {
 	return &AuthService{
 		userRepo: userRepo,
 	}
+}
+
+type IAuthService interface {
+	RegisterUser(ctx context.Context, user *models.User) error
+	LoginUser(ctx context.Context, email string, password string) (string, error)
 }
 
 func (s *AuthService) RegisterUser(ctx context.Context, user *models.User) error {
@@ -34,6 +41,8 @@ func (s *AuthService) RegisterUser(ctx context.Context, user *models.User) error
 	}
 
 	user.Password = string(hashedPassword)
+	user.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
+	user.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
 	return s.userRepo.CreateUser(ctx, user)
 }
 
